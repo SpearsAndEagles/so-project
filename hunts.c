@@ -1,7 +1,10 @@
 #include "hunts.h"
 #include "helpers.h"
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 int create_hunt(const char *hunt_id)
 {

@@ -1,6 +1,7 @@
 #include "logging.h"
 #include "hunts.h"
 #include "treasures.h"
+#include "helpers.h"
 
 int main(int argc, char **argv)
 {
