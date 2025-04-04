@@ -15,7 +15,6 @@ typedef struct
 } Treasure;
 
 int add_treasure(const char *hunt_id, Treasure *treasure);
-int list_treasures(const char *hunt_id);
 int view_treasure(const char *hunt_id, int treasure_id);
 int remove_treasure(const char *hunt_id, int treasure_id);
 
