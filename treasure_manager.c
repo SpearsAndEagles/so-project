@@ -2,28 +2,11 @@
 #include "hunts.h"
 #include "treasures.h"
 
-#define COMMAND(a) strcmp(command, a) == 0
-
-void exit_with_error(const char *message)
-{
-    if (message)
-    {
-        printf("%s", message);
-    }
-    printf("Usage:\n");
-    printf("  treasure_manager add <hunt_id>\n");
-    printf("  treasure_manager list <hunt_id>\n");
-    printf("  treasure_manager view <hunt_id> <treasure_id>\n");
-    printf("  treasure_manager remove_treasure <hunt_id> <treasure_id>\n");
-    printf("  treasure_manager remove_hunt <hunt_id>\n");
-    exit(-1);
-}
-
 int main(int argc, char **argv)
 {
     if (argc < 3)
     {
-        exit_with_error("No command provided");
+        exit_with_error("No command provided", 1);
         exit(-1);
     }
 
@@ -42,12 +25,12 @@ int main(int argc, char **argv)
     {
         if (argc < 4)
         {
-            exit_with_error("No treasure_id provided");
+            exit_with_error("No treasure_id provided", 1);
         }
         int treasure_id = atoi(argv[3]);
         if (!treasure_id)
         {
-            exit_with_error("Invalid treasure_id provided");
+            exit_with_error("Invalid treasure_id provided", 1);
         }
         view_treasure(hunt_id, treasure_id);
     }
@@ -55,12 +38,12 @@ int main(int argc, char **argv)
     {
         if (argc < 4)
         {
-            exit_with_error("No treasure_id provided");
+            exit_with_error("No treasure_id provided", 1);
         }
         int treasure_id = atoi(argv[3]);
         if (!treasure_id)
         {
-            exit_with_error("Invalid treasure_id provided");
+            exit_with_error("Invalid treasure_id provided", 1);
         }
         remove_treasure(hunt_id, treasure_id);
     }
@@ -71,7 +54,7 @@ int main(int argc, char **argv)
     else
     {
         printf("\"%10s\" is not a treasure_manager command", argv[1]);
-        exit_with_error(0);
+        exit_with_error(0, 1);
         exit(-1);
     }
 }
