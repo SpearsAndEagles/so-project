@@ -14,7 +14,7 @@ typedef struct
     int value;
 } Treasure;
 
-Treasure *create_treasure(int id, const char *username, float latitude, float longitude, const char *clue, int value);
+short ask_and_create_treasure(Treasure *treasure);
 int add_treasure(const char *hunt_id, Treasure *treasure);
 int view_treasure(const char *hunt_id, int treasure_id);
 int remove_treasure(const char *hunt_id, int treasure_id);
