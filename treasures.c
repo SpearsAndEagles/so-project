@@ -5,37 +5,29 @@ short ask_and_create_treasure(Treasure *treasure)
 {
     short next = 0;
     printf("Enter username: ");
-    scanf("%s", treasure->username);
+    scanf("%50s", treasure->username);
     printf("Enter latitude: ");
     while (scanf("%f", &treasure->latitude) != 1)
     {
         printf(""
-               "Invalid input. Please enter a valid latitude: ");
+               "Invalid input. Please enter a valid latitude: \n");
     }
     printf("Enter longitude: ");
     while (scanf("%f", &treasure->longitude) != 1)
     {
         printf(""
-               "Invalid input. Please enter a valid longitude: ");
+               "Invalid input. Please enter a valid longitude: \n");
     }
     printf("Enter clue: ");
-    scanf("%s", treasure->clue);
+    scanf("%256s", treasure->clue);
     printf("Enter value: ");
     while (scanf("%d", &treasure->value) != 1)
     {
         printf(""
-               "Invalid input. Please enter a valid value: ");
+               "Invalid input. Please enter a valid value: \n");
 }
     printf("Do you want to continue? (1 = yes, 0 = no): ");
-    scanf("%d", next);
-    return next;
-}
-
-short create_treasure(Treasure *treasure)
-{
-    short next = ask_for_treasure_info(treasure);
-    if (!treasure)
-        return -1;
+    scanf("%hd", &next);
     return next;
 }
 
