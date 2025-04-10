@@ -7,7 +7,7 @@ int main(int argc, char **argv)
 {
     if (argc < 3)
     {
-        exit_with_error("No command provided", 1);
+        exit_with_error("No command provided\n", 1);
         exit(-1);
     }
 
