@@ -1,26 +1,42 @@
 #include "treasures.h"
+#include "helpers.h"
 
-void ask_for_treasure_info(Treasure *treasure)
+short ask_and_create_treasure(Treasure *treasure)
 {
+    short next = 0;
     printf("Enter username: ");
     scanf("%s", treasure->username);
     printf("Enter latitude: ");
-    scanf("%f", &treasure->latitude);
+    while (scanf("%f", &treasure->latitude) != 1)
+    {
+        printf(""
+               "Invalid input. Please enter a valid latitude: ");
+    }
     printf("Enter longitude: ");
-    scanf("%f", &treasure->longitude);
+    while (scanf("%f", &treasure->longitude) != 1)
+    {
+        printf(""
+               "Invalid input. Please enter a valid longitude: ");
+    }
     printf("Enter clue: ");
     scanf("%s", treasure->clue);
     printf("Enter value: ");
-    scanf("%d", &treasure->value);
+    while (scanf("%d", &treasure->value) != 1)
+    {
+        printf(""
+               "Invalid input. Please enter a valid value: ");
+}
+    printf("Do you want to continue? (1 = yes, 0 = no): ");
+    scanf("%d", next);
+    return next;
 }
 
-Treasure *create_treasure()
+short create_treasure(Treasure *treasure)
 {
-    Treasure *treasure = malloc(sizeof(Treasure));
-    ask_for_treasure_info(treasure);
+    short next = ask_for_treasure_info(treasure);
     if (!treasure)
-        return 0;
-    return treasure;
+        return -1;
+    return next;
 }
 
 int add_treasure(const char *hunt_id, Treasure *treasure)
