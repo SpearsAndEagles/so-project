@@ -17,6 +17,16 @@ int main(int argc, char **argv)
     if (COMMAND("add"))
     {
         create_hunt(hunt_id);
+        Treasure *treasure = malloc(sizeof(Treasure));
+        short next = 1;
+        while (next)
+        {
+            next = ask_and_create_treasure(treasure);
+            if (add_treasure(hunt_id, treasure) < 0)
+            {
+                exit_with_error("Failed to add treasure", 1);
+            }
+        }
     }
     else if (COMMAND("list"))
     {
