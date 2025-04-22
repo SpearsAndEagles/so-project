@@ -79,6 +79,31 @@ void print_treasure(Treasure *treasure)
 
 int view_treasure(const char *hunt_id, int treasure_id)
 {
+char treasure_path[256];
+    snprintf(treasure_path, sizeof(treasure_path), "./%s/%s", hunt_id, TREASURE_FILE);
+    int fd = open(treasure_path, O_RDONLY);
+    if (fd < 0)
+    {
+        perror("open treasure file");
+        return -1;
+    }
+    Treasure treasure;
+    int found = 0;
+    while (read(fd, &treasure, sizeof(Treasure)) == sizeof(Treasure))
+    {
+        if (treasure.id == treasure_id)
+        {
+            print_treasure(&treasure);
+            found = 1;
+            break;
+        }
+    }
+    close(fd);
+    if (!found)
+    {
+        printf("Treasure with ID %d not found\n", treasure_id);
+        return -1;
+    }
     return 0;
 }
 int remove_treasure(const char *hunt_id, int treasure_id)
