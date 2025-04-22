@@ -63,6 +63,20 @@ int add_treasure(const char *hunt_id, Treasure *treasure)
 
     return 0;
 }
+
+void print_treasure(Treasure *treasure)
+{
+    if (!treasure)
+        return;
+    printf("Treasure Details:\n");
+    printf("ID: %d\n", treasure->id);
+    printf("User: %s\n", treasure->username);
+    printf("Latitude: %.4f\n", treasure->latitude);
+    printf("Longitude: %.4f\n", treasure->longitude);
+    printf("Clue: %s\n", treasure->clue);
+    printf("Value: %d\n", treasure->value);
+}
+
 int view_treasure(const char *hunt_id, int treasure_id)
 {
     return 0;
