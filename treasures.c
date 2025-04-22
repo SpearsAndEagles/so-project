@@ -56,6 +56,11 @@ int add_treasure(const char *hunt_id, Treasure *treasure)
         return -1;
     }
     close(fd);
+
+    char details[256];
+    snprintf(details, sizeof(details), "Added treasure with ID %d", treasure->id);
+    log_operation(hunt_id, "ADD", details);
+
     return 0;
 }
 int view_treasure(const char *hunt_id, int treasure_id)
