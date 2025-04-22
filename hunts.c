@@ -1,4 +1,5 @@
 #include "hunts.h"
+#include "treasures.h"
 #include "helpers.h"
 #include <ftw.h>
 
@@ -52,5 +53,33 @@ int remove_hunt(const char *hunt_id)
 
 int list_treasures(const char *hunt_id)
 {
+    char treasure_path[256];
+    snprintf(treasure_path, sizeof(treasure_path), "./%s/%s", hunt_id, TREASURE_FILE);
+
+    struct stat st;
+    if (stat(treasure_path, &st) < 0)
+    {
+        perror("stat treasure file");
+        return -1;
+    }
+    printf("Hunt: %s\nFile Size: %ld bytes\nLast Modified: %s",
+           hunt_id, st.st_size, ctime(&st.st_mtime));
+
+    // Open the treasure file.
+    int fd = open(treasure_path, O_RDONLY);
+    if (fd < 0)
+    {
+        perror("open treasure file");
+        return -1;
+    }
+
+    Treasure treasure;
+    printf("Treasures:\n");
+    while (read(fd, &treasure, sizeof(Treasure)) == sizeof(Treasure))
+    {
+        print_treasure(&treasure);
+        printf("\n");
+    }
+    close(fd);
     return 0;
 }
