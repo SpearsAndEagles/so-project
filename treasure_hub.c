@@ -1,4 +1,5 @@
 #include "helpers.h"
+
 #define CMD_FILE "/tmp/treasure_cmd"
 #define ARG_FILE "/tmp/treasure_arg"
 
@@ -9,34 +10,72 @@
     }
 
 int monitor_running = 0;
+pid_t monitor_pid = 0;
 
 void send_command(const char *cmd, const char *arg)
 {
     printf("Sending command '%s' with arg '%s'\n", cmd, arg ? arg : "(null)");
 }
 
+void monitor()
+{
+    printf("Monitor process [%d] started.\n", getpid());
+    sleep(5);
+    printf("Monitor process [%d] exiting.\n", getpid());
+}
+
 void stop_monitor()
 {
-    monitor_running = 0;
-    printf("Stopping monitor\n");
+    if (monitor_running && monitor_pid > 0)
+    {
+        monitor_running = 0;
+        printf("Stopping monitor (PID %d)\n", monitor_pid);
+        kill(monitor_pid, SIGTERM);
+        waitpid(monitor_pid, NULL, 0);
+        monitor_pid = 0;
+    }
+    else
+    {
+        printf("Error: monitor is not running.\n");
+    }
 }
 
 void start_monitor()
 {
-    monitor_running = 1;
-    printf("Starting monitor\n");
+    if (monitor_running)
+    {
+        printf("Monitor is already running (PID %d).\n", monitor_pid);
+        return;
+    }
+
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+        perror("fork");
+    }
+    else if (pid == 0)
+    {
+        monitor();
+        _exit(0);
+    }
+    else
+    {
+        monitor_running = 1;
+        monitor_pid = pid;
+        printf("Started monitor with PID %d\n", monitor_pid);
+    }
 }
 
 void print_help()
 {
     printf("Available commands:\n");
-    printf("  start_monitor       - Start the monitoring service\n");
-    printf("  stop_monitor        - Stop the monitoring service\n");
-    printf("  list_hunts          - List all hunts (requires monitor)\n");
-    printf("  list_treasures <id> - List treasures for hunt <id> (requires monitor)\n");
-    printf("  view_treasure <id>  - View details for treasure <id> (requires monitor)\n");
-    printf("  help                - Show this help message\n");
-    printf("  exit                - Exit the application (monitor must be stopped)\n");
+    printf("  start_monitor           - Start the monitoring service (forks a child process)\n");
+    printf("  stop_monitor            - Stop the monitoring service\n");
+    printf("  list_hunts              - List all hunts (requires monitor)\n");
+    printf("  list_treasures <id>     - List treasures for hunt <id> (requires monitor)\n");
+    printf("  view_treasure <id>      - View details for treasure <id> (requires monitor)\n");
+    printf("  help                    - Show this help message\n");
+    printf("  exit                    - Exit the application (monitor must be stopped)\n");
 }
 
 int main()
