@@ -16,6 +16,7 @@ void send_command(const char *cmd, const char *arg)
 
 void stop_monitor()
 {
+monitor_running = 0;
     printf("Stopping monitor\n");
 }
 
