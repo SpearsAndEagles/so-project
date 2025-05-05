@@ -40,6 +40,11 @@ int main()
         {
             start_monitor();
         }
+        else if (strcmp(line, "stop_monitor") == 0)
+        {
+            IF_MONITOR_NOT_RUNNING()
+            else stop_monitor();
+        }
         else if (strcmp(line, "list_hunts") == 0)
         {
             IF_MONITOR_NOT_RUNNING()
