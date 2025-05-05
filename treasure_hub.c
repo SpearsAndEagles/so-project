@@ -9,6 +9,7 @@
     }
 
 int monitor_running = 0;
+
 void send_command(const char *cmd, const char *arg)
 {
     printf("Sending command '%s' with arg '%s'\n", cmd, arg ? arg : "(null)");
@@ -16,7 +17,7 @@ void send_command(const char *cmd, const char *arg)
 
 void stop_monitor()
 {
-monitor_running = 0;
+    monitor_running = 0;
     printf("Stopping monitor\n");
 }
 
@@ -26,16 +27,29 @@ void start_monitor()
     printf("Starting monitor\n");
 }
 
+void print_help()
+{
+    printf("Available commands:\n");
+    printf("  start_monitor       - Start the monitoring service\n");
+    printf("  stop_monitor        - Stop the monitoring service\n");
+    printf("  list_hunts          - List all hunts (requires monitor)\n");
+    printf("  list_treasures <id> - List treasures for hunt <id> (requires monitor)\n");
+    printf("  view_treasure <id>  - View details for treasure <id> (requires monitor)\n");
+    printf("  help                - Show this help message\n");
+    printf("  exit                - Exit the application (monitor must be stopped)\n");
+}
+
 int main()
 {
     char line[256];
-    printf("Welcome to treasure_hub. Type commands (exit to quit).\n");
+    printf("Welcome to treasure_hub. Type commands (help to list commands, exit to quit).\n");
     while (1)
     {
         printf("> ");
         if (!fgets(line, sizeof(line), stdin))
             break;
         line[strcspn(line, "\n")] = '\0';
+
         if (strcmp(line, "start_monitor") == 0)
         {
             start_monitor();
@@ -71,10 +85,9 @@ int main()
                     send_command("view_treasure", arg);
             }
         }
-        else if (strcmp(line, "stop_monitor") == 0)
+        else if (strcmp(line, "help") == 0)
         {
-            IF_MONITOR_NOT_RUNNING()
-            else stop_monitor();
+            print_help();
         }
         else if (strcmp(line, "exit") == 0)
         {
@@ -94,6 +107,7 @@ int main()
             printf("Unknown command '%s'\n", line);
         }
     }
+
     printf("Goodbye!\n");
     return 0;
 }
