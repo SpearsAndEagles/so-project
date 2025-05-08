@@ -24,6 +24,35 @@ void monitor()
     printf("Monitor process [%d] exiting.\n", getpid());
 }
 
+void sigchld_handler(int signum)
+{
+    (void)signum;
+    int status;
+    pid_t pid;
+    while ((pid = waitpid(-1, &status, WNOHANG)) > 0)
+    {
+        if (pid == monitor_pid)
+        {
+            printf("Monitor child (PID %d) terminated with status %d.\n", pid, status);
+            monitor_running = 0;
+            monitor_pid = 0;
+        }
+    }
+}
+
+void setup_sigchld_handler()
+{
+    struct sigaction sa;
+    sa.sa_handler = sigchld_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGCHLD, &sa, NULL) < 0)
+    {
+        perror("sigaction");
+        _exit(1);
+    }
+}
+
 void stop_monitor()
 {
     if (monitor_running && monitor_pid > 0)
@@ -55,11 +84,13 @@ void start_monitor()
     }
     else if (pid == 0)
     {
+        // Child process: run the monitor loop
         monitor();
         _exit(0);
     }
     else
     {
+        // Parent process
         monitor_running = 1;
         monitor_pid = pid;
         printf("Started monitor with PID %d\n", monitor_pid);
@@ -80,6 +111,9 @@ void print_help()
 
 int main()
 {
+    // Setup SIGCHLD handler
+    setup_sigchld_handler();
+
     char line[256];
     printf("Welcome to treasure_hub. Type commands (help to list commands, exit to quit).\n");
     while (1)
