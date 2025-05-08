@@ -1,0 +1,67 @@
+static pid_t monitor_pid = 0;
+static int monitor_running = 0;
+static volatile sig_atomic_t child_exited = 0;
+
+void sigchld_handler(int signo)
+{
+    (void)signo;
+    child_exited = 1;
+}
+
+int fd;
+    // Write command
+    fd = open(CMD_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0)
+    {
+        perror("open cmd");
+        return;
+    }
+    write(fd, cmd, strlen(cmd) + 1);
+    close(fd);
+    if (arg)
+    {
+        fd = open(ARG_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0)
+        {
+            perror("open arg");
+            return;
+        }
+        write(fd, arg, strlen(arg) + 1);
+        close(fd);
+    }
+    if (kill(monitor_pid, SIGUSR1) < 0)
+    {
+        perror("kill SIGUSR1");
+    }
+
+
+
+    if (!monitor_running)
+    {
+        printf("Monitor is not running.\n");
+        return;
+    }
+    // Ask monitor to terminate
+    send_command("stop", NULL);
+    printf("Sent stop to monitor, waiting for termination...\n");
+    // Wait until child_exited
+    while (!child_exited)
+    {
+        usleep(100000);
+    }
+    int status;
+    waitpid(monitor_pid, &status, 0);
+    if (WIFEXITED(status))
+    {
+        printf("Monitor exited with status %d\n", WEXITSTATUS(status));
+    }
+    else if (WIFSIGNALED(status))
+    {
+        printf("Monitor killed by signal %d\n", WTERMSIG(status));
+    }
+    else
+    {
+        printf("Monitor terminated abnormally\n");
+    }
+    monitor_running = 0;
+    monitor_pid = 0;
