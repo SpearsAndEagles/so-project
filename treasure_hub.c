@@ -11,18 +11,7 @@
 
 int monitor_running = 0;
 pid_t monitor_pid = 0;
-
-void send_command(const char *cmd, const char *arg)
-{
-    printf("Sending command '%s' with arg '%s'\n", cmd, arg ? arg : "(null)");
-}
-
-void monitor()
-{
-    printf("Monitor process [%d] started.\n", getpid());
-    sleep(5);
-    printf("Monitor process [%d] exiting.\n", getpid());
-}
+static volatile sig_atomic_t got_command = 0;
 
 void sigchld_handler(int signum)
 {
@@ -48,8 +37,136 @@ void setup_sigchld_handler()
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) < 0)
     {
-        perror("sigaction");
+        perror("sigaction SIGCHLD");
         _exit(1);
+    }
+}
+
+void send_command(const char *cmd, const char *arg)
+{
+    printf("Sending command '%s' with arg '%s'\n", cmd, arg ? arg : "(null)");
+    int fd;
+    // Write command to CMD_FILE
+    fd = open(CMD_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+    if (fd < 0)
+    {
+        perror("open CMD_FILE");
+        return;
+    }
+    if (write(fd, cmd, strlen(cmd) + 1) < 0)
+        perror("write CMD_FILE");
+    close(fd);
+
+    // Write arg if present
+    if (arg)
+    {
+        fd = open(ARG_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+        if (fd < 0)
+        {
+            perror("open ARG_FILE");
+            return;
+        }
+        if (write(fd, arg, strlen(arg) + 1) < 0)
+            perror("write ARG_FILE");
+        close(fd);
+    }
+
+    // Signal monitor
+    if (kill(monitor_pid, SIGUSR1) < 0)
+    {
+        perror("kill SIGUSR1");
+    }
+}
+
+// Handler for SIGUSR1 in monitor
+void sigusr1_handler(int signum)
+{
+    (void)signum;
+    got_command = 1;
+}
+
+void setup_sigusr1_handler()
+{
+    struct sigaction sa;
+    sa.sa_handler = sigusr1_handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+    if (sigaction(SIGUSR1, &sa, NULL) < 0)
+    {
+        perror("sigaction SIGUSR1");
+        _exit(1);
+    }
+}
+
+void process_command()
+{
+    char cmd_buf[256];
+    char arg_buf[256];
+    // Read command
+    int fd = open(CMD_FILE, O_RDONLY);
+    if (fd < 0)
+    {
+        perror("monitor open CMD_FILE");
+        return;
+    }
+    ssize_t n = read(fd, cmd_buf, sizeof(cmd_buf));
+    close(fd);
+    if (n <= 0)
+        return;
+
+    // Try read arg
+    fd = open(ARG_FILE, O_RDONLY);
+    char *arg = NULL;
+    if (fd >= 0)
+    {
+        ssize_t m = read(fd, arg_buf, sizeof(arg_buf));
+        close(fd);
+        if (m > 0)
+            arg = arg_buf;
+    }
+
+    // Dispatch
+    if (strcmp(cmd_buf, "list_hunts") == 0)
+    {
+        printf("[Monitor] Listing all hunts...\n");
+        // TODO: implement actual listing
+    }
+    else if (strcmp(cmd_buf, "list_treasures") == 0)
+    {
+        printf("[Monitor] Listing treasures for hunt '%s'...\n", arg ? arg : "(none)");
+        // TODO: implement actual listing
+    }
+    else if (strcmp(cmd_buf, "view_treasure") == 0)
+    {
+        printf("[Monitor] Viewing treasure '%s'...\n", arg ? arg : "(none)");
+        // TODO: implement actual viewing
+    }
+    else if (strcmp(cmd_buf, "stop") == 0)
+    {
+        printf("[Monitor] Received stop command, exiting after delay.\n");
+        sleep(5); // simulate delay
+        printf("[Monitor] Exiting now.\n");
+        _exit(0);
+    }
+    else
+    {
+        printf("[Monitor] Unknown command '%s'\n", cmd_buf);
+    }
+}
+
+void monitor()
+{
+    printf("Monitor process [%d] started. Waiting for commands...\n", getpid());
+    setup_sigusr1_handler();
+
+    while (1)
+    {
+        pause(); // wait for signal
+        if (got_command)
+        {
+            got_command = 0;
+            process_command();
+        }
     }
 }
 
@@ -57,11 +174,11 @@ void stop_monitor()
 {
     if (monitor_running && monitor_pid > 0)
     {
-        monitor_running = 0;
         printf("Stopping monitor (PID %d)\n", monitor_pid);
-        kill(monitor_pid, SIGTERM);
-        waitpid(monitor_pid, NULL, 0);
-        monitor_pid = 0;
+        send_command("stop", NULL);
+        // Wait for the monitor to exit
+        while (monitor_running)
+            sleep(1);
     }
     else
     {
@@ -114,55 +231,55 @@ int main()
     // Setup SIGCHLD handler
     setup_sigchld_handler();
 
-    char command[256];
+    char line[256];
     printf("Welcome to treasure_hub. Type commands (help to list commands, exit to quit).\n");
     while (1)
     {
         printf("> ");
-        if (!fgets(command, sizeof(command), stdin))
+        if (!fgets(line, sizeof(line), stdin))
             break;
-        command[strcspn(command, "\n")] = '\0';
+        line[strcspn(line, "\n")] = '\0';
 
-        if (COMMAND("start_monitor"))
+        if (strcmp(line, "start_monitor") == 0)
         {
             start_monitor();
         }
-        else if (COMMAND("stop_monitor"))
+        else if (strcmp(line, "stop_monitor") == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else stop_monitor();
         }
-        else if (COMMAND("list_hunts"))
+        else if (strcmp(line, "list_hunts") == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else send_command("list_hunts", NULL);
         }
-        else if (strncmp(command, "list_treasures", 14) == 0)
+        else if (strncmp(line, "list_treasures", 14) == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else
             {
-                char *arg = command + 15;
+                char *arg = line + 15;
                 send_command("list_treasures", arg);
             }
         }
-        else if (strncmp(command, "view_treasure", 13) == 0)
+        else if (strncmp(line, "view_treasure", 13) == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else
             {
-                char *arg = command + 14;
+                char *arg = line + 14;
                 if (arg[0] == ' ' || arg[0] == '\0')
                     printf("Error: no treasure ID provided.\n");
                 else
                     send_command("view_treasure", arg);
             }
         }
-        else if (COMMAND("help"))
+        else if (strcmp(line, "help") == 0)
         {
             print_help();
         }
-        else if (COMMAND("exit"))
+        else if (strcmp(line, "exit") == 0)
         {
             if (monitor_running)
             {
@@ -171,13 +288,13 @@ int main()
             else
                 break;
         }
-        else if (command[0] == '\0')
+        else if (line[0] == '\0')
         {
             continue;
         }
         else
         {
-            printf("Unknown command '%s'\n", command);
+            printf("Unknown command '%s'\n", line);
         }
     }
 
