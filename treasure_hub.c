@@ -114,55 +114,55 @@ int main()
     // Setup SIGCHLD handler
     setup_sigchld_handler();
 
-    char line[256];
+    char command[256];
     printf("Welcome to treasure_hub. Type commands (help to list commands, exit to quit).\n");
     while (1)
     {
         printf("> ");
-        if (!fgets(line, sizeof(line), stdin))
+        if (!fgets(command, sizeof(command), stdin))
             break;
-        line[strcspn(line, "\n")] = '\0';
+        command[strcspn(command, "\n")] = '\0';
 
-        if (strcmp(line, "start_monitor") == 0)
+        if (COMMAND("start_monitor"))
         {
             start_monitor();
         }
-        else if (strcmp(line, "stop_monitor") == 0)
+        else if (COMMAND("stop_monitor"))
         {
             IF_MONITOR_NOT_RUNNING()
             else stop_monitor();
         }
-        else if (strcmp(line, "list_hunts") == 0)
+        else if (COMMAND("list_hunts"))
         {
             IF_MONITOR_NOT_RUNNING()
             else send_command("list_hunts", NULL);
         }
-        else if (strncmp(line, "list_treasures", 14) == 0)
+        else if (strncmp(command, "list_treasures", 14) == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else
             {
-                char *arg = line + 15;
+                char *arg = command + 15;
                 send_command("list_treasures", arg);
             }
         }
-        else if (strncmp(line, "view_treasure", 13) == 0)
+        else if (strncmp(command, "view_treasure", 13) == 0)
         {
             IF_MONITOR_NOT_RUNNING()
             else
             {
-                char *arg = line + 14;
+                char *arg = command + 14;
                 if (arg[0] == ' ' || arg[0] == '\0')
                     printf("Error: no treasure ID provided.\n");
                 else
                     send_command("view_treasure", arg);
             }
         }
-        else if (strcmp(line, "help") == 0)
+        else if (COMMAND("help"))
         {
             print_help();
         }
-        else if (strcmp(line, "exit") == 0)
+        else if (COMMAND("exit"))
         {
             if (monitor_running)
             {
@@ -171,13 +171,13 @@ int main()
             else
                 break;
         }
-        else if (line[0] == '\0')
+        else if (command[0] == '\0')
         {
             continue;
         }
         else
         {
-            printf("Unknown command '%s'\n", line);
+            printf("Unknown command '%s'\n", command);
         }
     }
 
