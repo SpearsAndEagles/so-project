@@ -1,6 +1,6 @@
 #include "hunts.h"
 #include "treasures.h"
-#include "helpers.h"
+#include "../helpers.h"
 #include <ftw.h>
 
 int create_hunt(const char *hunt_id)
