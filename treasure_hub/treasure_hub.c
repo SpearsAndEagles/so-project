@@ -1,5 +1,4 @@
-#include "helpers.h"
-
+#include "../treasure_manager/helpers.h"
 #define CMD_FILE "/tmp/treasure_cmd"
 #define ARG_FILE "/tmp/treasure_arg"
 
@@ -143,9 +142,7 @@ void process_command()
     }
     else if (strcmp(cmd_buf, "stop") == 0)
     {
-        printf("[Monitor] Received stop command, exiting after delay.\n");
-        sleep(5); // simulate delay
-        printf("[Monitor] Exiting now.\n");
+        printf("[Monitor] Received stop command exiting\n");
         _exit(0);
     }
     else
