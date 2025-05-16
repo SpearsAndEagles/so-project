@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <time.h>
 
 #define COMMAND(a) strcmp(command, a) == 0
 
