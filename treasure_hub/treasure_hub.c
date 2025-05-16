@@ -77,7 +77,6 @@ void send_command(const char *cmd, const char *arg)
     }
 }
 
-// Handler for SIGUSR1 in monitor
 void sigusr1_handler(int signum)
 {
     (void)signum;
@@ -137,8 +136,21 @@ void process_command()
     }
     else if (strcmp(cmd_buf, "view_treasure") == 0)
     {
-        printf("[Monitor] Viewing treasure '%s'...\n", arg ? arg : "(none)");
-        // TODO: implement actual viewing
+        if (!arg)
+        {
+            printf("[Monitor] Error: no arguments provided for view_treasure.\n");
+            return;
+        }
+        // Parse two IDs from arg: <hunt_id> <treasure_id>
+        char *hunt_id = strtok(arg_buf, " ");
+        char *treasure_id = strtok(NULL, " ");
+        if (!hunt_id || !treasure_id)
+        {
+            printf("[Monitor] Error: view_treasure requires <hunt_id> <treasure_id>.\n");
+            return;
+        }
+        printf("[Monitor] Viewing treasure '%s' in hunt '%s'...\n", treasure_id, hunt_id);
+        // TODO: call helper: view_treasure(hunt_id, treasure_id);
     }
     else if (strcmp(cmd_buf, "stop") == 0)
     {
@@ -173,7 +185,6 @@ void stop_monitor()
     {
         printf("Stopping monitor (PID %d)\n", monitor_pid);
         send_command("stop", NULL);
-        // Wait for the monitor to exit
         while (monitor_running)
             sleep(1);
     }
@@ -198,13 +209,11 @@ void start_monitor()
     }
     else if (pid == 0)
     {
-        // Child process: run the monitor loop
         monitor();
         _exit(0);
     }
     else
     {
-        // Parent process
         monitor_running = 1;
         monitor_pid = pid;
         printf("Started monitor with PID %d\n", monitor_pid);
@@ -214,18 +223,17 @@ void start_monitor()
 void print_help()
 {
     printf("Available commands:\n");
-    printf("  start_monitor           - Start the monitoring service (forks a child process)\n");
-    printf("  stop_monitor            - Stop the monitoring service\n");
-    printf("  list_hunts              - List all hunts (requires monitor)\n");
-    printf("  list_treasures <id>     - List treasures for hunt <id> (requires monitor)\n");
-    printf("  view_treasure <id>      - View details for treasure <id> (requires monitor)\n");
-    printf("  help                    - Show this help message\n");
-    printf("  exit                    - Exit the application (monitor must be stopped)\n");
+    printf("  start_monitor                     - Start the monitoring service\n");
+    printf("  stop_monitor                      - Stop the monitoring service\n");
+    printf("  list_hunts                        - List all hunts (requires monitor)\n");
+    printf("  list_treasures <hunt_id>         - List treasures for hunt <hunt_id> (requires monitor)\n");
+    printf("  view_treasure <hunt_id> <treasure_id> - View details for treasure in a hunt (requires monitor)\n");
+    printf("  help                              - Show this help message\n");
+    printf("  exit                              - Exit the application (monitor must be stopped)\n");
 }
 
 int main()
 {
-    // Setup SIGCHLD handler
     setup_sigchld_handler();
 
     char line[256];
@@ -265,11 +273,19 @@ int main()
             IF_MONITOR_NOT_RUNNING()
             else
             {
-                char *arg = line + 14;
-                if (arg[0] == ' ' || arg[0] == '\0')
-                    printf("Error: no treasure ID provided.\n");
+                // Expect "view_treasure <hunt_id> <treasure_id>"
+                char *args = line + 14;
+                char hunt_buf[128], treasure_buf[128];
+                if (sscanf(args, "%127s %127s", hunt_buf, treasure_buf) != 2)
+                {
+                    printf("Error: view_treasure requires two IDs.\n");
+                }
                 else
-                    send_command("view_treasure", arg);
+                {
+                    char combined_arg[256];
+                    snprintf(combined_arg, sizeof(combined_arg), "%s %s", hunt_buf, treasure_buf);
+                    send_command("view_treasure", combined_arg);
+                }
             }
         }
         else if (strcmp(line, "help") == 0)
