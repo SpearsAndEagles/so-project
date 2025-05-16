@@ -1,5 +1,5 @@
 #include "treasures.h"
-#include "helpers.h"
+#include "../helpers.h"
 #include "logging.h"
 
 short ask_and_create_treasure(Treasure *treasure)

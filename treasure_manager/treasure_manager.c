@@ -1,7 +1,7 @@
 #include "logging.h"
 #include "hunts.h"
 #include "treasures.h"
-#include "helpers.h"
+#include "../helpers.h"
 
 int main(int argc, char **argv)
 {
@@ -38,8 +38,8 @@ int main(int argc, char **argv)
         {
             exit_with_error("No treasure_id provided", 1);
         }
-        int treasure_id = atoi(argv[3]);
-        if (!treasure_id)
+        int treasure_id;
+        if (safe_atoi(argv[3], &treasure_id))
         {
             exit_with_error("Invalid treasure_id provided", 1);
         }

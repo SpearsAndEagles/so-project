@@ -1,5 +1,5 @@
 #include "logging.h"
-#include "helpers.h"
+#include "../helpers.h"
 
 int log_operation(const char *hunt_id, const char *operation, const char *details)
 {

@@ -1,4 +1,4 @@
-#include "../treasure_manager/helpers.h"
+#include "../../../helpers.h"
 #define CMD_FILE "/tmp/treasure_cmd"
 #define ARG_FILE "/tmp/treasure_arg"
 
