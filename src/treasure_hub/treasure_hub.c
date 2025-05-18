@@ -246,7 +246,7 @@ void process_command()
             }
             else if (cpid == 0)
             {
-                execlp("score_calculator", "score_calculator", entry->d_name, NULL);
+                execlp("./score_calculator", "score_calculator", entry->d_name, NULL);
                 perror("execlp score_calculator");
                 _exit(1);
             }
@@ -338,6 +338,16 @@ void start_monitor()
         monitor_running = 1;
         monitor_pid = pid;
         printf("Started monitor with PID %d\n", monitor_pid);
+        {
+            char buf[256];
+            ssize_t n;
+            while ((n = read(pipe_fds[0], buf, sizeof(buf))) > 0) {
+                if (write(STDOUT_FILENO, buf, n) < 0)
+                    perror("write to stdout");
+            }
+            if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+                perror("read pipe");
+        }
     }
 }
 
@@ -413,8 +423,7 @@ int main()
         else if (strcmp(line, "calculate_score") == 0)
         {
             IF_MONITOR_NOT_RUNNING()
-            else
-                send_command("calculate_score", NULL);
+            else send_command("calculate_score", NULL);
         }
         else if (strcmp(line, "help") == 0)
         {
