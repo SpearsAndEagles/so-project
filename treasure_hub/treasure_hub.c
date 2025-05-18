@@ -221,6 +221,42 @@ void process_command()
             }
         }
     }
+    else if (strcmp(cmd_buf, "calculate_score") == 0)
+    {
+        printf("[Monitor] Calculating scores for all hunts...\n");
+        DIR *d = opendir(".");
+        if (!d)
+        {
+            perror("opendir");
+            return;
+        }
+        struct dirent *entry;
+        while ((entry = readdir(d)) != NULL)
+        {
+            if (entry->d_type != DT_DIR ||
+                strcmp(entry->d_name, ".") == 0 ||
+                strcmp(entry->d_name, "..") == 0)
+                continue;
+            printf("[Monitor] Hunt '%s':\n", entry->d_name);
+            pid_t cpid = fork();
+            if (cpid < 0)
+            {
+                perror("fork calculate_score");
+                continue;
+            }
+            else if (cpid == 0)
+            {
+                execlp("score_calculator", "score_calculator", entry->d_name, NULL);
+                perror("execlp score_calculator");
+                _exit(1);
+            }
+            else
+            {
+                waitpid(cpid, NULL, 0);
+            }
+        }
+        closedir(d);
+    }
     else if (strcmp(cmd_buf, "stop") == 0)
     {
         printf("[Monitor] Received stop command exiting\n");
@@ -313,6 +349,7 @@ void print_help()
     printf("  list_hunts                        - List all hunts (requires monitor)\n");
     printf("  list_treasures <hunt_id>         - List treasures for hunt <hunt_id> (requires monitor)\n");
     printf("  view_treasure <hunt_id> <treasure_id> - View details for treasure in a hunt (requires monitor)\n");
+    printf("  calculate_score                   - Calculate and display scores for all users in each hunt (requires monitor)\n");
     printf("  help                              - Show this help message\n");
     printf("  exit                              - Exit the application (monitor must be stopped)\n");
 }
@@ -372,6 +409,12 @@ int main()
                     send_command("view_treasure", combined_arg);
                 }
             }
+        }
+        else if (strcmp(line, "calculate_score") == 0)
+        {
+            IF_MONITOR_NOT_RUNNING()
+            else
+                send_command("calculate_score", NULL);
         }
         else if (strcmp(line, "help") == 0)
         {
