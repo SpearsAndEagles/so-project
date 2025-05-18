@@ -127,12 +127,51 @@ void process_command()
     if (strcmp(cmd_buf, "list_hunts") == 0)
     {
         printf("[Monitor] Listing all hunts...\n");
-        // TODO: implement actual listing
+        /* spawn treasure_manager list_hunts */
+        {
+            pid_t cpid = fork();
+            if (cpid < 0)
+            {
+                perror("fork list_hunts");
+            }
+            else if (cpid == 0)
+            {
+                execlp("treasure_manager", "treasure_manager", "list_hunts", NULL);
+                perror("execlp list_hunts");
+                _exit(1);
+            }
+            else
+            {
+                waitpid(cpid, NULL, 0);
+            }
+        }
     }
     else if (strcmp(cmd_buf, "list_treasures") == 0)
     {
         printf("[Monitor] Listing treasures for hunt '%s'...\n", arg ? arg : "(none)");
-        // TODO: implement actual listing
+        /* spawn treasure_manager list <hunt_id> */
+        if (!arg)
+        {
+            printf("[Monitor] Error: no hunt_id provided for list_treasures.\n");
+            return;
+        }
+        {
+            pid_t cpid = fork();
+            if (cpid < 0)
+            {
+                perror("fork list");
+            }
+            else if (cpid == 0)
+            {
+                execlp("treasure_manager", "treasure_manager", "list", arg, NULL);
+                perror("execlp list");
+                _exit(1);
+            }
+            else
+            {
+                waitpid(cpid, NULL, 0);
+            }
+        }
     }
     else if (strcmp(cmd_buf, "view_treasure") == 0)
     {
@@ -150,7 +189,25 @@ void process_command()
             return;
         }
         printf("[Monitor] Viewing treasure '%s' in hunt '%s'...\n", treasure_id, hunt_id);
-        // TODO: call helper: view_treasure(hunt_id, treasure_id);
+        /* spawn treasure_manager view <hunt_id> <treasure_id> */
+        {
+            pid_t cpid = fork();
+            if (cpid < 0)
+            {
+                perror("fork view");
+            }
+            else if (cpid == 0)
+            {
+                execlp("treasure_manager", "treasure_manager",
+                       "view", hunt_id, treasure_id, NULL);
+                perror("execlp view");
+                _exit(1);
+            }
+            else
+            {
+                waitpid(cpid, NULL, 0);
+            }
+        }
     }
     else if (strcmp(cmd_buf, "stop") == 0)
     {
