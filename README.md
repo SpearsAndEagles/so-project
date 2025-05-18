@@ -21,20 +21,18 @@ Run these commands from the project root to compile all executables:
 ```bash
 # Build the treasure_manager tool
 gcc -o treasure_manager \
-    treasure_manager/treasure_manager.c \
-    treasure_manager/hunts.c \
-    treasure_manager/treasures.c \
-    treasure_manager/logging.c \
-    helpers.c
+    src/treasure_manager/*.c \
+    src/helpers.c
 
 # Build the interactive treasure_hub interface
 gcc -o treasure_hub \
-    treasure_hub/treasure_hub.c \
-    helpers.c
+    src/treasure_hub/*.c \
+    src/helpers.c
 
 # Build the score_calculator helper
 gcc -o score_calculator \
-    score_calculator/score_calculator.c
+    src/score_calculator/score_calculator.c \
+    src/helpers.c
 ```
 
 Make sure the resulting executables (`treasure_manager`, `treasure_hub`, and `score_calculator`)
