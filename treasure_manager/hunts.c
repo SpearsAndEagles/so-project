@@ -83,3 +83,49 @@ int list_treasures(const char *hunt_id)
     close(fd);
     return 0;
 }
+
+int list_hunts(void)
+{
+    DIR *d = opendir(".");
+    if (!d)
+    {
+        perror("opendir");
+        return -1;
+    }
+
+    struct dirent *ent;
+    struct stat st;
+    char hunt_path[256], treasure_path[256];
+
+    printf("Hunt ID       | Treasure Count\n");
+    printf("-------------------------------\n");
+    while ((ent = readdir(d)) != NULL)
+    {
+        /* skip hidden entries */
+        if (ent->d_name[0] == '.')
+            continue;
+
+        /* build path to potential hunt directory */
+        snprintf(hunt_path, sizeof(hunt_path), "./%s", ent->d_name);
+        if (stat(hunt_path, &st) < 0 || !S_ISDIR(st.st_mode))
+            continue;
+
+        /* build path to TREASURE_FILE inside that dir */
+        snprintf(treasure_path, sizeof(treasure_path),
+                 "%s/%s", ent->d_name, TREASURE_FILE);
+
+        /* if file exists, count = size/sizeof(Treasure), else count=0 */
+        if (stat(treasure_path, &st) == 0)
+        {
+            int count = st.st_size / sizeof(Treasure);
+            printf("%-14s | %d\n", ent->d_name, count);
+        }
+        else
+        {
+            printf("%-14s | %d\n", ent->d_name, 0);
+        }
+    }
+
+    closedir(d);
+    return 0;
+}

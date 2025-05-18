@@ -5,7 +5,7 @@
 
 int main(int argc, char **argv)
 {
-    if (argc < 3)
+    if (argc < 2)
     {
         exit_with_error("No command provided\n", 1);
         exit(-1);
@@ -14,7 +14,12 @@ int main(int argc, char **argv)
     char *command = argv[1];
     char *hunt_id = argv[2];
 
-    if (COMMAND("add"))
+    if (COMMAND("list_hunts"))
+    {
+        list_hunts();
+        return 0;
+    }
+    else if (COMMAND("add"))
     {
         create_hunt(hunt_id);
         Treasure *treasure = malloc(sizeof(Treasure));

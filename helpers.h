@@ -14,6 +14,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <limits.h>
+#include <dirent.h>
 
 #define COMMAND(a) strcmp(command, a) == 0
 
