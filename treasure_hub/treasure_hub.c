@@ -11,6 +11,7 @@
 int monitor_running = 0;
 pid_t monitor_pid = 0;
 static volatile sig_atomic_t got_command = 0;
+static int pipe_fds[2];
 
 void sigchld_handler(int signum)
 {
@@ -74,6 +75,17 @@ void send_command(const char *cmd, const char *arg)
     if (kill(monitor_pid, SIGUSR1) < 0)
     {
         perror("kill SIGUSR1");
+    }
+    {
+        char buf[256];
+        ssize_t n;
+        while ((n = read(pipe_fds[0], buf, sizeof(buf))) > 0)
+        {
+            if (write(STDOUT_FILENO, buf, n) < 0)
+                perror("write to stdout");
+        }
+        if (n < 0 && errno != EAGAIN && errno != EWOULDBLOCK)
+            perror("read pipe");
     }
 }
 
@@ -259,6 +271,11 @@ void start_monitor()
         return;
     }
 
+    if (pipe(pipe_fds) < 0)
+    {
+        perror("pipe");
+        return;
+    }
     pid_t pid = fork();
     if (pid < 0)
     {
@@ -266,11 +283,22 @@ void start_monitor()
     }
     else if (pid == 0)
     {
+        close(pipe_fds[0]);
+        if (dup2(pipe_fds[1], STDOUT_FILENO) < 0)
+        {
+            perror("dup2");
+            _exit(1);
+        }
+        close(pipe_fds[1]);
+        setvbuf(stdout, NULL, _IONBF, 0);
         monitor();
         _exit(0);
     }
     else
     {
+        close(pipe_fds[1]);
+        int flags = fcntl(pipe_fds[0], F_GETFL);
+        fcntl(pipe_fds[0], F_SETFL, flags | O_NONBLOCK);
         monitor_running = 1;
         monitor_pid = pid;
         printf("Started monitor with PID %d\n", monitor_pid);
