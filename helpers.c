@@ -48,3 +48,10 @@ int safe_atoi(const char *str, int *out)
     *out = (int)val;
     return 0;
 }
+
+void discard_stdin_line(void)
+{
+    int c;
+    while ((c = getchar()) != EOF && c != '\n')
+        ;
+}

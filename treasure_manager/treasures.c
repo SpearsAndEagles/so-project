@@ -20,7 +20,8 @@ short ask_and_create_treasure(Treasure *treasure)
                "Invalid input. Please enter a valid longitude: \n");
     }
     printf("Enter clue: ");
-    scanf("%256s", treasure->clue);
+    discard_stdin_line();
+    fgets(treasure->clue, sizeof(treasure->clue), stdin);
     printf("Enter value: ");
     while (scanf("%d", &treasure->value) != 1)
     {

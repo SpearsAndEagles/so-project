@@ -22,5 +22,6 @@
 
 void exit_with_error(const char *message, char show_usage);
 int safe_atoi(const char *str, int *out);
+void discard_stdin_line(void);
 
 #endif
