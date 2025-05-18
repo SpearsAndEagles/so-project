@@ -14,30 +14,6 @@ add and view treasures, monitor activity, and calculate per-user scores for each
 - POSIX-compatible operating system (Linux, macOS)
 - C compiler with C99 support (e.g. `gcc`)
 
-## Building from source
-
-Run these commands from the project root to compile all executables:
-
-```bash
-# Build the treasure_manager tool
-gcc -o treasure_manager \
-    src/treasure_manager/*.c \
-    src/helpers.c
-
-# Build the interactive treasure_hub interface
-gcc -o treasure_hub \
-    src/treasure_hub/*.c \
-    src/helpers.c
-
-# Build the score_calculator helper
-gcc -o score_calculator \
-    src/score_calculator/score_calculator.c \
-    src/helpers.c
-```
-
-Make sure the resulting executables (`treasure_manager`, `treasure_hub`, and `score_calculator`)
-are in your `PATH` or in the same directory you run them from.
-
 ## Usage
 
 ### treasure_manager (command-line)
@@ -83,3 +59,27 @@ Run `help` inside `treasure_hub` at any time to see all available commands.
 ```
 
 Outputs each username and their total score for the specified hunt.
+
+## Building from source
+
+Run these commands from the project root to compile all executables:
+
+```bash
+# Build the treasure_manager tool
+gcc -o treasure_manager \
+    src/treasure_manager/*.c \
+    src/helpers.c
+
+# Build the interactive treasure_hub interface
+gcc -o treasure_hub \
+    src/treasure_hub/*.c \
+    src/helpers.c
+
+# Build the score_calculator helper
+gcc -o score_calculator \
+    src/score_calculator/score_calculator.c \
+    src/helpers.c
+```
+
+Make sure the resulting executables (`treasure_manager`, `treasure_hub`, and `score_calculator`)
+are in your `PATH` or in the same directory you run them from.
